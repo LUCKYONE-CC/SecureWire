@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34221.43
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{E77C8E9C-0880-4650-8AAD-17B1571CBCD7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{BAD2757B-B51B-49B4-91C9-E226FBE776FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureWire", "SecureWire\SecureWire.csproj", "{7494B55D-5D87-4876-9564-2A18837E15C2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E77C8E9C-0880-4650-8AAD-17B1571CBCD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E77C8E9C-0880-4650-8AAD-17B1571CBCD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E77C8E9C-0880-4650-8AAD-17B1571CBCD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E77C8E9C-0880-4650-8AAD-17B1571CBCD7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAD2757B-B51B-49B4-91C9-E226FBE776FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAD2757B-B51B-49B4-91C9-E226FBE776FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAD2757B-B51B-49B4-91C9-E226FBE776FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAD2757B-B51B-49B4-91C9-E226FBE776FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7494B55D-5D87-4876-9564-2A18837E15C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7494B55D-5D87-4876-9564-2A18837E15C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7494B55D-5D87-4876-9564-2A18837E15C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7494B55D-5D87-4876-9564-2A18837E15C2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9EE08FA5-D5F9-4B9D-8270-5D36D85A171E}
+	EndGlobalSection
+EndGlobal
