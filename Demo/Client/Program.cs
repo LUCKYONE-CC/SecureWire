@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net.Sockets;
-using SecureWire;
+﻿using System.Net.Sockets;
 
 namespace SecureWireClient
 {

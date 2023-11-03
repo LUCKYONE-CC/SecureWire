@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SecureWire;
+using System;
 using System.Net.Sockets;
 using System.Text;
 
@@ -11,7 +12,7 @@ public class ClientHandler
         _tcpClient = tcpClient;
     }
 
-    public void StartReceiving(Action<string, string> messageReceivedCallback)
+    public void StartReceiving(Action<Package<string>, string> messageReceivedCallback)
     {
         try
         {
@@ -28,14 +29,33 @@ public class ClientHandler
                         if (bytesRead == 0)
                             break; // Verbindung wurde geschlossen
 
-                        string message = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                        string sender = ((System.Net.IPEndPoint)_tcpClient.Client.RemoteEndPoint).Address.ToString();
-                        messageReceivedCallback?.Invoke(message, sender);
+                        if (bytesRead >= 1)
+                        {
+                            byte flagByte = buffer[0];
+                            if (Enum.IsDefined(typeof(Flags), (int)flagByte))
+                            {
+                                Package<string> receivedPackage = new Package<string>
+                                {
+                                    FLAG = (Flags)flagByte,
+                                    Value = Encoding.ASCII.GetString(buffer, 1, bytesRead - 1)
+                                };
+
+                                MessageHandler(messageReceivedCallback, receivedPackage);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Ungültiger Enum-Wert: {flagByte}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Nicht genügend Daten zum Lesen vorhanden.");
+                        }
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Fehler beim Lesen oder Verbindungsabbruch
+                    Console.WriteLine($"Fehler beim Lesen oder Verbindungsabbruch: {ex.Message}");
                 }
                 finally
                 {
@@ -45,12 +65,11 @@ public class ClientHandler
 
             receiveThread.Start();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Fehler beim Akzeptieren der Verbindung
+            Console.WriteLine($"Fehler beim Akzeptieren der Verbindung: {ex.Message}");
         }
     }
-
     public void SendMessage(string message)
     {
         try
@@ -64,6 +83,24 @@ public class ClientHandler
         catch (Exception)
         {
             // Fehler beim Senden
+        }
+    }
+    private void MessageHandler(Action<Package<string>, string> messageReceivedCallback, Package<string> receivedPackage)
+    {
+        if(_tcpClient.Client.RemoteEndPoint == null)
+        {
+            throw new Exception("Kein RemoteEndPoint vorhanden.");
+        }
+
+        switch(receivedPackage.FLAG)
+        {
+            case Flags.MESSAGE:
+                string sender = ((System.Net.IPEndPoint)_tcpClient.Client.RemoteEndPoint).Address.ToString();
+                messageReceivedCallback?.Invoke(receivedPackage, sender);
+                break;
+            default:
+                Console.WriteLine($"Ungültiger Flag-Wert: {receivedPackage.FLAG}");
+                break;
         }
     }
 }

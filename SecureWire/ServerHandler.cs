@@ -83,17 +83,15 @@ namespace SecureWire
             }
             if (!_allowMultipleConnections)
             {
-                SendMessageToClient(_connectedClients.First(), message);
+                SendMessageToClient(_connectedClients.First(), message, Flags.MESSAGE);
                 return;
             }
 
-            byte[] buffer = Encoding.ASCII.GetBytes(message);
             foreach (var client in _connectedClients)
             {
                 try
                 {
-                    NetworkStream stream = client.GetStream();
-                    stream.Write(buffer, 0, buffer.Length);
+                    SendMessageToClient(client, message, Flags.MESSAGE);
                 }
                 catch (Exception)
                 {
@@ -102,9 +100,22 @@ namespace SecureWire
             }
         }
 
-        public void SendMessageToClient(TcpClient client, string message)
+        public void SendMessageToClient(TcpClient client, string message, Flags flag)
         {
-            byte[] buffer = Encoding.ASCII.GetBytes(message);
+            Package<string> package = new Package<string>
+            {
+                FLAG = flag,
+                Value = message
+            };
+
+            // Wandeln Sie das Package in ein Byte-Array um, um es zu senden
+            byte[] flagBytes = new byte[] { (byte)package.FLAG };
+            byte[] valueBytes = Encoding.ASCII.GetBytes(package.Value);
+
+            byte[] buffer = new byte[flagBytes.Length + valueBytes.Length];
+            Array.Copy(flagBytes, buffer, flagBytes.Length);
+            Array.Copy(valueBytes, 0, buffer, flagBytes.Length, valueBytes.Length);
+
             try
             {
                 NetworkStream stream = client.GetStream();
@@ -114,6 +125,11 @@ namespace SecureWire
             {
                 // Fehler beim Senden
             }
+        }
+
+        private void SendPublicKey(TcpClient tcpClient, string publicKey)
+        {
+
         }
     }
 }
