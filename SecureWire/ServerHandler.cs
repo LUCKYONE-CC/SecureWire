@@ -14,12 +14,7 @@ namespace SecureWire
 
         public ServerHandler(IPAddress iPAddress, int port) : base(iPAddress, port)
         {
-            
-        }
-
-        public void Initialize(TcpListener tcpListener)
-        {
-            _tcpListener = tcpListener;
+            _tcpListener = this;
         }
 
         public async Task StartReceiving(Action<string, string> messageReceivedCallback)
@@ -30,6 +25,11 @@ namespace SecureWire
                 {
                     TcpClient client = await _tcpListener.AcceptTcpClientAsync();
                     _connectedClients.Add(client);
+
+                    string clientAddress = ((System.Net.IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
+
+                    Console.WriteLine($"Client {clientAddress} hat sich erfolgreich verbunden.");
+
                     NetworkStream stream = client.GetStream();
 
                     Task receiveTask = ReceiveMessagesAsync(stream, messageReceivedCallback, client);
@@ -40,6 +40,7 @@ namespace SecureWire
                 // Fehler beim Akzeptieren der Verbindung
             }
         }
+
 
         private async Task ReceiveMessagesAsync(NetworkStream stream, Action<string, string> messageReceivedCallback, TcpClient client)
         {
