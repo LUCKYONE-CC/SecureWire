@@ -11,20 +11,17 @@ namespace Server
     {
         static async Task Main(string[] args)
         {
-            TcpListener server = null;
-            ServerHandler serverHandler = new ServerHandler();
+            ServerHandler serverHandler = null;
 
             try
             {
                 IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
                 int port = 12345;
 
-                server = new TcpListener(ipAddress, port);
-                server.Start();
+                serverHandler = new ServerHandler(ipAddress, port);
+                serverHandler.Start();
 
                 Console.WriteLine("Server gestartet. Warte auf Verbindung...");
-
-                serverHandler.Initialize(server);
 
                 Task receivingTask = serverHandler.StartReceiving((message, sender) =>
                 {
@@ -43,7 +40,7 @@ namespace Server
             }
             finally
             {
-                server?.Stop();
+                serverHandler?.Stop();
             }
         }
     }

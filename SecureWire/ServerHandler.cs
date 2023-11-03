@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace SecureWire
         private TcpListener _tcpListener;
         private List<TcpClient> _connectedClients = new List<TcpClient>();
 
-        public ServerHandler() : base(0)
+        public ServerHandler(IPAddress iPAddress, int port) : base(iPAddress, port)
         {
             
         }
