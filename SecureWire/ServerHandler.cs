@@ -6,10 +6,15 @@ using System.Threading.Tasks;
 
 namespace SecureWire
 {
-    public class ServerHandler
+    public class ServerHandler : TcpListener
     {
         private TcpListener _tcpListener;
         private List<TcpClient> _connectedClients = new List<TcpClient>();
+
+        public ServerHandler() : base(0)
+        {
+            
+        }
 
         public void Initialize(TcpListener tcpListener)
         {
