@@ -11,10 +11,12 @@ namespace SecureWire
     {
         private TcpListener _tcpListener;
         private List<TcpClient> _connectedClients = new List<TcpClient>();
+        private bool _allowMultipleConnections;
 
-        public ServerHandler(IPAddress iPAddress, int port) : base(iPAddress, port)
+        public ServerHandler(IPAddress iPAddress, int port, bool allowMultipleConnections) : base(iPAddress, port)
         {
             _tcpListener = this;
+            _allowMultipleConnections = allowMultipleConnections;
         }
 
         public async Task StartReceiving(Action<string, string> messageReceivedCallback)
@@ -23,6 +25,13 @@ namespace SecureWire
             {
                 while (true)
                 {
+                    if (!_allowMultipleConnections && _connectedClients.Count > 0)
+                    {
+                        // Wenn _allowMultipleConnections false ist und bereits eine Verbindung besteht,
+                        // wird keine neue Verbindung akzeptiert.
+                        continue;
+                    }
+
                     TcpClient client = await _tcpListener.AcceptTcpClientAsync();
                     _connectedClients.Add(client);
 
@@ -37,7 +46,7 @@ namespace SecureWire
             }
             catch (Exception)
             {
-                // Fehler beim Akzeptieren der Verbindung
+
             }
         }
 
@@ -71,6 +80,16 @@ namespace SecureWire
 
         public void SendMessageToClients(string message)
         {
+            if(_connectedClients.Count == 0)
+            {
+                throw new Exception("Es sind keine Clients verbunden.");
+            }
+            if (!_allowMultipleConnections)
+            {
+                SendMessageToClient(_connectedClients.First(), message);
+                return;
+            }
+
             byte[] buffer = Encoding.ASCII.GetBytes(message);
             foreach (var client in _connectedClients)
             {
