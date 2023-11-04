@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using SecureWire.Cryptography;
 using SecureWire.Models;
 
 namespace SecureWire
@@ -28,16 +29,20 @@ namespace SecureWire
                         continue;
                     }
 
-                    TcpClient client = await _tcpListener.AcceptTcpClientAsync();
-                    _connectedClients.Add(new Client { TcpClient = client });
+                    TcpClient tcpClient = await _tcpListener.AcceptTcpClientAsync();
+                    var (privateKey, publicKey) = RSA.GenerateKeys();
+                    var client = new Client { TcpClient = tcpClient, PrivateKey = privateKey, PublicKey = publicKey };
+                    _connectedClients.Add(client);
 
-                    string clientAddress = ((System.Net.IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
+                    SecureWire(client);
+
+                    string clientAddress = ((System.Net.IPEndPoint)client.TcpClient.Client.RemoteEndPoint).Address.ToString();
 
                     Console.WriteLine($"Client {clientAddress} hat sich erfolgreich verbunden.");
 
-                    NetworkStream stream = client.GetStream();
+                    NetworkStream stream = client.TcpClient.GetStream();
 
-                    Task receiveTask = ReceiveMessagesAsync(stream, messageReceivedCallback, client);
+                    Task receiveTask = ReceiveMessagesAsync(stream, messageReceivedCallback, client.TcpClient);
                 }
             }
             catch (Exception)
@@ -155,7 +160,7 @@ namespace SecureWire
             }
         }
 
-        private void SendPublicKey(TcpClient tcpClient, string publicKey)
+        private void SecureWire(Client client)
         {
 
         }
