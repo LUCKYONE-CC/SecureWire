@@ -37,7 +37,7 @@ public class ClientHandler : TcpClient
                         byte[] buffer = new byte[256];
                         int bytesRead = stream.Read(buffer, 0, buffer.Length);
                         if (bytesRead == 0)
-                            break; // Verbindung wurde geschlossen
+                            break; // Conn closed
 
                         if (bytesRead >= 1)
                         {
@@ -90,7 +90,6 @@ public class ClientHandler : TcpClient
                 Value = message
             };
 
-            // Wandeln Sie das Package in ein Byte-Array um, um es zu senden
             byte[] flagBytes = new byte[] { (byte)package.FLAG };
             byte[] valueBytes = Encoding.ASCII.GetBytes(package.Value);
 
@@ -101,12 +100,10 @@ public class ClientHandler : TcpClient
 
             NetworkStream stream = _tcpClient.GetStream();
             stream.Write(buffer, 0, buffer.Length);
-
-            // Keine Notwendigkeit, die Verbindung sofort zu schließen
         }
         catch (Exception)
         {
-            // Fehler beim Senden
+
         }
     }
     private void MessageHandler(Action<Package<string>, string> messageReceivedCallback, Package<string> receivedPackage)

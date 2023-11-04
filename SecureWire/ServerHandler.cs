@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using SecureWire.Cryptography;
@@ -46,7 +45,7 @@ namespace SecureWire
             }
             catch (Exception)
             {
-                // Fehler beim Akzeptieren der Verbindung
+
             }
         }
 
@@ -59,7 +58,7 @@ namespace SecureWire
                 {
                     int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
                     if (bytesRead == 0)
-                        break; // Verbindung wurde geschlossen
+                        break; // Conn closed
 
                     if (bytesRead >= 1)
                     {
@@ -87,7 +86,7 @@ namespace SecureWire
             }
             catch (Exception)
             {
-                // Fehler beim Lesen oder Verbindungsabbruch
+
             }
             finally
             {
@@ -126,7 +125,7 @@ namespace SecureWire
                 }
                 catch (Exception)
                 {
-                    // Fehler beim Senden
+
                 }
             }
         }
@@ -139,7 +138,6 @@ namespace SecureWire
                 Value = message
             };
 
-            // Wandeln Sie das Package in ein Byte-Array um, um es zu senden
             byte[] flagBytes = new byte[] { (byte)package.FLAG };
             byte[] valueBytes = Encoding.ASCII.GetBytes(package.Value);
 
@@ -154,7 +152,7 @@ namespace SecureWire
             }
             catch (Exception)
             {
-                // Fehler beim Senden
+
             }
         }
         private void MessageHandler(Action<Package<string>, string> messageReceivedCallback, Package<string> receivedPackage, TcpClient tcpClient)
