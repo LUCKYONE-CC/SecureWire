@@ -8,11 +8,8 @@ namespace SecureWireClient
         {
             try
             {
-                TcpClient client = new TcpClient();
-                client.Connect("127.0.0.1", 12345);
-
                 ClientHandler clientHandler = new ClientHandler();
-                clientHandler.Initialize(client);
+                clientHandler.Connect("127.0.0.1", 12345);
 
                 clientHandler.StartReceiving((message, sender) =>
                 {

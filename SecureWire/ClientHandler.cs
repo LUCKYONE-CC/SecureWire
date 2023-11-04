@@ -1,15 +1,25 @@
 ﻿using SecureWire;
-using System;
 using System.Net.Sockets;
 using System.Text;
 
-public class ClientHandler
+public class ClientHandler : TcpClient
 {
     private TcpClient _tcpClient;
 
-    public void Initialize(TcpClient tcpClient)
+    public ClientHandler()
     {
-        _tcpClient = tcpClient;
+        _tcpClient = new TcpClient();
+    }
+    public new void Connect(string hostname, int port)
+    {
+        try
+        {
+            _tcpClient.Connect(hostname, port);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fehler beim Verbinden: {ex.Message}");
+        }
     }
 
     public void StartReceiving(Action<Package<string>, string> messageReceivedCallback)
