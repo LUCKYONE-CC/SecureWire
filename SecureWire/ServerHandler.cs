@@ -16,7 +16,7 @@ namespace SecureWire
             _allowMultipleConnections = allowMultipleConnections;
         }
 
-        public async Task StartReceiving(Action<string, string> messageReceivedCallback)
+        public async Task StartReceiving(Action<Package<string>, string> messageReceivedCallback)
         {
             try
             {
@@ -24,8 +24,6 @@ namespace SecureWire
                 {
                     if (!_allowMultipleConnections && _connectedClients.Count > 0)
                     {
-                        // Wenn _allowMultipleConnections false ist und bereits eine Verbindung besteht,
-                        // wird keine neue Verbindung akzeptiert.
                         continue;
                     }
 
@@ -43,12 +41,11 @@ namespace SecureWire
             }
             catch (Exception)
             {
-
+                // Fehler beim Akzeptieren der Verbindung
             }
         }
 
-
-        private async Task ReceiveMessagesAsync(NetworkStream stream, Action<string, string> messageReceivedCallback, TcpClient client)
+        private async Task ReceiveMessagesAsync(NetworkStream stream, Action<Package<string>, string> messageReceivedCallback, TcpClient client)
         {
             try
             {
@@ -59,9 +56,29 @@ namespace SecureWire
                     if (bytesRead == 0)
                         break; // Verbindung wurde geschlossen
 
-                    string message = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                    string sender = ((System.Net.IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
-                    messageReceivedCallback?.Invoke(message, sender);
+                    if (bytesRead >= 1)
+                    {
+                        byte flagByte = buffer[0];
+                        if (Enum.IsDefined(typeof(Flags), (int)flagByte))
+                        {
+                            Package<string> receivedPackage = new Package<string>
+                            {
+                                FLAG = (Flags)flagByte,
+                                Value = Encoding.ASCII.GetString(buffer, 1, bytesRead - 1)
+                            };
+
+                            string sender = ((System.Net.IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
+                            messageReceivedCallback?.Invoke(receivedPackage, sender);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Ungültiger Enum-Wert: {flagByte}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Nicht genügend Daten zum Lesen vorhanden.");
+                    }
                 }
             }
             catch (Exception)
@@ -74,6 +91,7 @@ namespace SecureWire
                 _connectedClients.Remove(client);
             }
         }
+
 
         public void SendMessageToClients(string message)
         {

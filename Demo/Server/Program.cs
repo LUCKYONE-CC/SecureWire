@@ -21,7 +21,7 @@ namespace Server
 
                 Task receivingTask = serverHandler.StartReceiving((message, sender) =>
                 {
-                    Console.WriteLine($"Client {sender}: {message}");
+                    Console.WriteLine($"Client {sender}: {message.Value}");
                 });
 
                 while (true)

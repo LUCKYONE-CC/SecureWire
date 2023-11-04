@@ -13,13 +13,13 @@ namespace SecureWireClient
 
                 clientHandler.StartReceiving((message, sender) =>
                 {
-                    Console.WriteLine($"Nachricht von {sender}: {message}");
+                    Console.WriteLine($"Nachricht von {sender}: {message.Value}");
                 });
 
                 while (true)
                 {
                     string userInput = Console.ReadLine();
-                    clientHandler.SendMessage(userInput);
+                    clientHandler.SendMessage(userInput, SecureWire.Flags.MESSAGE);
                 }
             }
             catch (Exception e)

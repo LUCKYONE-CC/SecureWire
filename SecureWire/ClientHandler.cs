@@ -80,12 +80,26 @@ public class ClientHandler : TcpClient
             Console.WriteLine($"Fehler beim Akzeptieren der Verbindung: {ex.Message}");
         }
     }
-    public void SendMessage(string message)
+    public void SendMessage(string message, Flags flag)
     {
         try
         {
+            Package<string> package = new Package<string>
+            {
+                FLAG = flag,
+                Value = message
+            };
+
+            // Wandeln Sie das Package in ein Byte-Array um, um es zu senden
+            byte[] flagBytes = new byte[] { (byte)package.FLAG };
+            byte[] valueBytes = Encoding.ASCII.GetBytes(package.Value);
+
+            byte[] buffer = new byte[flagBytes.Length + valueBytes.Length];
+            Array.Copy(flagBytes, buffer, flagBytes.Length);
+            Array.Copy(valueBytes, 0, buffer, flagBytes.Length, valueBytes.Length);
+
+
             NetworkStream stream = _tcpClient.GetStream();
-            byte[] buffer = Encoding.ASCII.GetBytes(message);
             stream.Write(buffer, 0, buffer.Length);
 
             // Keine Notwendigkeit, die Verbindung sofort zu schließen
