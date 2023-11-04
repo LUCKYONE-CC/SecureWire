@@ -1,4 +1,4 @@
-﻿using SecureWire;
+﻿using SecureWire.Models;
 using System.Net.Sockets;
 using System.Text;
 

@@ -1,4 +1,4 @@
-﻿namespace SecureWire
+﻿namespace SecureWire.Models
 {
     public class Package<T>
     {

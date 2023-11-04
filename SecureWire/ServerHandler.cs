@@ -1,13 +1,14 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using SecureWire.Models;
 
 namespace SecureWire
 {
     public class ServerHandler : TcpListener
     {
         private TcpListener _tcpListener;
-        private List<TcpClient> _connectedClients = new List<TcpClient>();
+        private List<Client> _connectedClients = new List<Client>();
         private bool _allowMultipleConnections;
 
         public ServerHandler(IPAddress iPAddress, int port, bool allowMultipleConnections) : base(iPAddress, port)
@@ -28,7 +29,7 @@ namespace SecureWire
                     }
 
                     TcpClient client = await _tcpListener.AcceptTcpClientAsync();
-                    _connectedClients.Add(client);
+                    _connectedClients.Add(new Client { TcpClient = client });
 
                     string clientAddress = ((System.Net.IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
 
@@ -88,7 +89,9 @@ namespace SecureWire
             finally
             {
                 stream.Close();
-                _connectedClients.Remove(client);
+                var clientToRemove = _connectedClients.FirstOrDefault(c => c.TcpClient == client);
+                if(clientToRemove != null)
+                    _connectedClients.Remove(clientToRemove);
             }
         }
 
@@ -101,7 +104,12 @@ namespace SecureWire
             }
             if (!_allowMultipleConnections)
             {
-                SendMessageToClient(_connectedClients.First(), message, Flags.MESSAGE);
+                var tcpClient = _connectedClients.First().TcpClient;
+                if(tcpClient == null)
+                {
+                    throw new Exception("Es ist kein Client verbunden.");
+                }
+                SendMessageToClient(tcpClient, message, Flags.MESSAGE);
                 return;
             }
 
@@ -109,7 +117,9 @@ namespace SecureWire
             {
                 try
                 {
-                    SendMessageToClient(client, message, Flags.MESSAGE);
+                    if(client.TcpClient == null)
+                        throw new Exception($"The client with the ID: {client.Id} has no TcpClient.");
+                    SendMessageToClient(client.TcpClient, message, Flags.MESSAGE);
                 }
                 catch (Exception)
                 {

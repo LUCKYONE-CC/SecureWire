@@ -1,4 +1,5 @@
 ﻿using System.Net.Sockets;
+using SecureWire.Models;
 
 namespace SecureWireClient
 {
@@ -19,7 +20,7 @@ namespace SecureWireClient
                 while (true)
                 {
                     string userInput = Console.ReadLine();
-                    clientHandler.SendMessage(userInput, SecureWire.Flags.MESSAGE);
+                    clientHandler.SendMessage(userInput, Flags.MESSAGE);
                 }
             }
             catch (Exception e)
