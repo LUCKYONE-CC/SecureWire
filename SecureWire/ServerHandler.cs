@@ -179,6 +179,17 @@ namespace SecureWire
                     string sender = ((System.Net.IPEndPoint)client.TcpClient.Client.RemoteEndPoint).Address.ToString();
                     messageReceivedCallback?.Invoke(receivedPackage, sender);
                     break;
+                case Flags.SUCCESSFULKEYEXCHANGE:
+                    break;
+                case Flags.PUBKEYFROMSERVER:
+                    if(client.PublicKey == null)
+                        throw new Exception("Client hat keinen PublicKey.");
+                    SendMessageToClient(client.TcpClient, client.PublicKey, Flags.PUBKEYFROMSERVER);
+                    break;
+                case Flags.CONFIRMRECEPTION:
+                    break;
+                case Flags.AESFORSERVER:
+                    break;
                 default:
                     Console.WriteLine($"Ungültiger Flag-Wert: {receivedPackage.FLAG}");
                     break;
