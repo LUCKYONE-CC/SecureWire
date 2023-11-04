@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using SecureWire.Cryptography;
@@ -33,8 +34,6 @@ namespace SecureWire
                     var (privateKey, publicKey) = RSA.GenerateKeys();
                     var client = new Client { TcpClient = tcpClient, PrivateKey = privateKey, PublicKey = publicKey };
                     _connectedClients.Add(client);
-
-                    SecureWire(client);
 
                     string clientAddress = ((System.Net.IPEndPoint)client.TcpClient.Client.RemoteEndPoint).Address.ToString();
 
@@ -73,8 +72,7 @@ namespace SecureWire
                                 Value = Encoding.ASCII.GetString(buffer, 1, bytesRead - 1)
                             };
 
-                            string sender = ((System.Net.IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
-                            messageReceivedCallback?.Invoke(receivedPackage, sender);
+                            MessageHandler(messageReceivedCallback, receivedPackage, client);
                         }
                         else
                         {
@@ -159,10 +157,32 @@ namespace SecureWire
                 // Fehler beim Senden
             }
         }
-
-        private void SecureWire(Client client)
+        private void MessageHandler(Action<Package<string>, string> messageReceivedCallback, Package<string> receivedPackage, TcpClient tcpClient)
         {
+            var client = _connectedClients.FirstOrDefault(c => c.TcpClient == tcpClient);
+            if(client == null)
+            {
+                throw new Exception("Client nicht gefunden.");
+            }
+            if(client.TcpClient == null)
+            {
+                throw new Exception("Kein TcpClient vorhanden.");
+            }
+            if (client.TcpClient.Client.RemoteEndPoint == null)
+            {
+                throw new Exception("Kein RemoteEndPoint vorhanden.");
+            }
 
+            switch (receivedPackage.FLAG)
+            {
+                case Flags.MESSAGE:
+                    string sender = ((System.Net.IPEndPoint)client.TcpClient.Client.RemoteEndPoint).Address.ToString();
+                    messageReceivedCallback?.Invoke(receivedPackage, sender);
+                    break;
+                default:
+                    Console.WriteLine($"Ungültiger Flag-Wert: {receivedPackage.FLAG}");
+                    break;
+            }
         }
     }
 }
