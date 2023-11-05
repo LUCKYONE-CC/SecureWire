@@ -108,11 +108,11 @@ public class ClientHandler : TcpClient
                 if(validationSuccessStatus == true)
                 {
                     client.SecureConnection = true;
-                    SendMessage("sdsd", Flags.SUCCESSFULKEYEXCHANGE);
+                    SendMessage("SUCCESSFULKEYEXCHANGE", Flags.SUCCESSFULKEYEXCHANGE);
                 }
                 else
                 {
-                    SendMessage("sdsd", Flags.CLOSECONNECTION);
+                    SendMessage("CLOSECONNECTION", Flags.CLOSECONNECTION);
                     client.TcpClient.Close();
                     throw new Exception("Fehler bei der Validierung des Schlüsselaustausches.");
                 }
