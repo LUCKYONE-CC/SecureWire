@@ -1,5 +1,4 @@
-﻿using System.Net.Sockets;
-using SecureWire.Models;
+﻿using SecureWire.Models;
 
 namespace SecureWireClient
 {
