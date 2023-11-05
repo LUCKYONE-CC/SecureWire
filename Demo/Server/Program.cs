@@ -14,7 +14,7 @@ namespace Server
                 IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
                 int port = 12345;
 
-                serverHandler = new ServerHandler(ipAddress, port, false);
+                serverHandler = new ServerHandler(ipAddress, port, false, true);
                 serverHandler.Start();
 
                 Console.WriteLine("Server gestartet. Warte auf Verbindung...");

@@ -12,11 +12,13 @@ namespace SecureWire
         private TcpListener _tcpListener;
         private List<Client> _connectedClients = new List<Client>();
         private bool _allowMultipleConnections;
+        private bool _encryptedConnection;
 
-        public ServerHandler(IPAddress iPAddress, int port, bool allowMultipleConnections) : base(iPAddress, port)
+        public ServerHandler(IPAddress iPAddress, int port, bool allowMultipleConnections, bool encryptedConnection) : base(iPAddress, port)
         {
             _tcpListener = this;
             _allowMultipleConnections = allowMultipleConnections;
+            _encryptedConnection = encryptedConnection;
         }
 
         public async Task StartReceiving(Action<Package<string>, string> messageReceivedCallback)
@@ -37,7 +39,8 @@ namespace SecureWire
 
                     string clientAddress = ((System.Net.IPEndPoint)client.TcpClient.Client.RemoteEndPoint).Address.ToString();
 
-                    SecureWire(client);
+                    if(_encryptedConnection)
+                        SecureWire(client);
 
                     Console.WriteLine($"Client {clientAddress} hat sich erfolgreich verbunden.");
 
