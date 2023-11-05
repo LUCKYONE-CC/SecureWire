@@ -1,20 +1,22 @@
-﻿using SecureWire.Models;
+﻿using SecureWire.Cryptography;
+using SecureWire.Models;
 using System.Net.Sockets;
 using System.Text;
 
 public class ClientHandler : TcpClient
 {
-    private TcpClient _tcpClient;
+    private Client client;
 
     public ClientHandler()
     {
-        _tcpClient = new TcpClient();
+        client = new Client();
+        client.TcpClient = new TcpClient();
     }
     public new void Connect(string hostname, int port)
     {
         try
         {
-            _tcpClient.Connect(hostname, port);
+                client.TcpClient.Connect(hostname, port);
         }
         catch (Exception ex)
         {
@@ -26,7 +28,7 @@ public class ClientHandler : TcpClient
     {
         try
         {
-            NetworkStream stream = _tcpClient.GetStream();
+            NetworkStream stream = client.TcpClient.GetStream();
 
             Thread receiveThread = new Thread(() =>
             {
@@ -69,7 +71,7 @@ public class ClientHandler : TcpClient
                 }
                 finally
                 {
-                    _tcpClient.Close();
+                    client.TcpClient.Close();
                 }
             });
 
@@ -98,7 +100,7 @@ public class ClientHandler : TcpClient
             Array.Copy(valueBytes, 0, buffer, flagBytes.Length, valueBytes.Length);
 
 
-            NetworkStream stream = _tcpClient.GetStream();
+            NetworkStream stream = client.TcpClient.GetStream();
             stream.Write(buffer, 0, buffer.Length);
         }
         catch (Exception)
@@ -108,7 +110,8 @@ public class ClientHandler : TcpClient
     }
     private void MessageHandler(Action<Package<string>, string> messageReceivedCallback, Package<string> receivedPackage)
     {
-        if(_tcpClient.Client.RemoteEndPoint == null)
+        string aesKey;
+        if(client.TcpClient.Client.RemoteEndPoint == null)
         {
             throw new Exception("Kein RemoteEndPoint vorhanden.");
         }
@@ -116,8 +119,11 @@ public class ClientHandler : TcpClient
         switch(receivedPackage.FLAG)
         {
             case Flags.MESSAGE:
-                string sender = ((System.Net.IPEndPoint)_tcpClient.Client.RemoteEndPoint).Address.ToString();
+                string sender = ((System.Net.IPEndPoint)client.TcpClient.Client.RemoteEndPoint).Address.ToString();
                 messageReceivedCallback?.Invoke(receivedPackage, sender);
+                break;
+            case Flags.PUBKEYFROMSERVER:
+                aesKey = AES.GenerateRandomString(32);
                 break;
             default:
                 Console.WriteLine($"Ungültiger Flag-Wert: {receivedPackage.FLAG}");

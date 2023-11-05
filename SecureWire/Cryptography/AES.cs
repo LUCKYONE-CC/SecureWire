@@ -93,5 +93,12 @@ namespace SecureWire.Cryptography
                 return pbkdf2.GetBytes(keySize / 8);
             }
         }
+        public static string GenerateRandomString(int length)
+        {
+            Random random = new Random();
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456§$%&/()=789";
+            return new string(Enumerable.Repeat(chars, length)
+                         .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
     }
 }
