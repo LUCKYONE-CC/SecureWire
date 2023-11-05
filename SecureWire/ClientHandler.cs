@@ -57,7 +57,11 @@ public class ClientHandler : TcpClient
             Console.WriteLine($"Fehler beim Empfangen der Nachricht: {ex.Message}");
         }
     }
-    public void SendMessage(string message, Flags flag)
+    public void SendMessageToServer(string message)
+    {
+        SendPackageToServer(message, Flags.MESSAGE);
+    }
+    private void SendPackageToServer(string message, Flags flag)
     {
         try
         {
@@ -101,18 +105,18 @@ public class ClientHandler : TcpClient
                     throw new Exception("Kein Public-Key vom Server erhalten.");
                 string encryptedAESKey = RSA.EncryptWithPublicKey(client.AESKey, receivedPackage.Value);
                 client.PublicKey = receivedPackage.Value;
-                SendMessage(encryptedAESKey, Flags.AESFORSERVER);
+                SendPackageToServer(encryptedAESKey, Flags.AESFORSERVER);
                 break;
             case Flags.CONFIRMRECEPTION:
                 bool validationSuccessStatus = ValidateSuccessfulKeyExchange(receivedPackage.Value, client.PublicKey);
                 if(validationSuccessStatus == true)
                 {
                     client.SecureConnection = true;
-                    SendMessage("SUCCESSFULKEYEXCHANGE", Flags.SUCCESSFULKEYEXCHANGE);
+                    SendPackageToServer("SUCCESSFULKEYEXCHANGE", Flags.SUCCESSFULKEYEXCHANGE);
                 }
                 else
                 {
-                    SendMessage("CLOSECONNECTION", Flags.CLOSECONNECTION);
+                    SendPackageToServer("CLOSECONNECTION", Flags.CLOSECONNECTION);
                     client.TcpClient.Close();
                     throw new Exception("Fehler bei der Validierung des Schlüsselaustausches.");
                 }

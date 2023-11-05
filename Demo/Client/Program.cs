@@ -19,7 +19,7 @@ namespace SecureWireClient
                 while (true)
                 {
                     string input = Console.ReadLine();
-                    clientHandler.SendMessage(input, Flags.SUCCESSFULKEYEXCHANGE);
+                    clientHandler.SendMessage(input);
                 }
             }
             catch (Exception e)
