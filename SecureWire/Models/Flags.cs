@@ -8,5 +8,6 @@
         SUCCESSFULKEYEXCHANGE,
         AESFORSERVER,
         MESSAGE,
+        CLOSECONNECTION
     }
 }

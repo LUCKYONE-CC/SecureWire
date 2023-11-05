@@ -19,8 +19,8 @@ namespace SecureWireClient
 
                 while (true)
                 {
-                    string userInput = Console.ReadLine();
-                    clientHandler.SendMessage(userInput, Flags.MESSAGE);
+                    string input = Console.ReadLine();
+                    clientHandler.SendMessage(input, Flags.SUCCESSFULKEYEXCHANGE);
                 }
             }
             catch (Exception e)
