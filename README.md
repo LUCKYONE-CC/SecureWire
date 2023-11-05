@@ -1,4 +1,5 @@
 # 🛠️ Currently under maintenance 🛠️
+[![CodeFactor](https://www.codefactor.io/repository/github/luckyone-cc/securewire/badge/master)](https://www.codefactor.io/repository/github/luckyone-cc/securewire/overview/master)
 # SecureWire
 
 # Concept
