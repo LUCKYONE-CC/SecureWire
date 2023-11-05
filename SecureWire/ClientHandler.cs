@@ -110,10 +110,18 @@ public class ClientHandler : TcpClient
     }
     private void MessageHandler(Action<Package<string>, string> messageReceivedCallback, Package<string> receivedPackage)
     {
-        string aesKey;
         if(client.TcpClient.Client.RemoteEndPoint == null)
         {
             throw new Exception("Kein RemoteEndPoint vorhanden.");
+        }
+
+        if(client.SecureConnection == true)
+        {
+            if(client.AESKey == null)
+                throw new Exception("Kein AES-Key vorhanden.");
+            if(receivedPackage.Value == null)
+                throw new Exception("Kein Value vorhanden.");
+            receivedPackage.Value = AES.Decrypt(receivedPackage.Value, client.AESKey);
         }
 
         switch(receivedPackage.FLAG)
@@ -123,7 +131,11 @@ public class ClientHandler : TcpClient
                 messageReceivedCallback?.Invoke(receivedPackage, sender);
                 break;
             case Flags.PUBKEYFROMSERVER:
-                aesKey = AES.GenerateRandomString(32);
+                client.AESKey = AES.GenerateRandomString(32);
+                if (receivedPackage.Value == null)
+                    throw new Exception("Kein Public-Key vom Server erhalten.");
+                string encryptedAESKey = RSA.EncryptWithPublicKey(client.AESKey, receivedPackage.Value);
+                SendMessage(encryptedAESKey, Flags.AESFORSERVER);
                 break;
             default:
                 Console.WriteLine($"Ungültiger Flag-Wert: {receivedPackage.FLAG}");
