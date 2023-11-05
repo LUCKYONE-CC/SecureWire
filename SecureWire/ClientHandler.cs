@@ -29,28 +29,31 @@ public class ClientHandler : TcpClient
     {
         try
         {
-            NetworkStream stream = client.TcpClient.GetStream();
-
-            while (true)
+            Task.Run(() =>
             {
-                byte[] buffer = new byte[4096];
-                int bytesRead = stream.Read(buffer, 0, buffer.Length);
-                if (bytesRead == 0)
+                NetworkStream stream = client.TcpClient.GetStream();
+
+                while (true)
                 {
-                    break;
+                    byte[] buffer = new byte[4096];
+                    int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                    if (bytesRead == 0)
+                    {
+                        break;
+                    }
+
+                    string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+                    Package<string> receivedPackage = JsonConvert.DeserializeObject<Package<string>>(message);
+
+                    if (client.SecureConnection == true)
+                    {
+                        receivedPackage.Value = AES.Decrypt(client.AESKey, receivedPackage.Value);
+                    }
+
+                    MessageHandler(messageReceivedCallback, receivedPackage);
                 }
-
-                string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-
-                Package<string> receivedPackage = JsonConvert.DeserializeObject<Package<string>>(message);
-
-                if (client.SecureConnection == true)
-                {
-                    receivedPackage.Value = AES.Decrypt(client.AESKey, receivedPackage.Value);
-                }
-
-                MessageHandler(messageReceivedCallback, receivedPackage);
-            }
+            });
         }
         catch (Exception ex)
         {
