@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Text;
 using Newtonsoft.Json;
 using SecureWire.Cryptography;
+using SecureWire.Exceptions;
 using SecureWire.Models;
 
 namespace SecureWire
@@ -42,7 +43,7 @@ namespace SecureWire
                     if(_encryptedConnection)
                         SecureWire(client);
 
-                    Console.WriteLine($"Client {clientAddress} hat sich erfolgreich verbunden.");
+                    Console.WriteLine($"Client {clientAddress} successfully connected.");
 
                     NetworkStream stream = client.TcpClient.GetStream();
 
@@ -76,7 +77,7 @@ namespace SecureWire
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Fehler beim Empfangen der Nachricht: {ex.Message}");
+               throw new Exception($"Error while attempting to receive message", innerException: ex);
             }
         }
 
@@ -84,14 +85,14 @@ namespace SecureWire
         {
             if (_connectedClients.Count == 0)
             {
-                throw new Exception("Es sind keine Clients verbunden.");
+                throw new Exception("No clients are connected");
             }
             if (!_allowMultipleConnections)
             {
                 var client = _connectedClients.First();
                 if (client.TcpClient == null)
                 {
-                    throw new Exception("Es ist kein Client verbunden.");
+                    throw new ClientNotConnectedException();
                 }
                 SendMessageToClient(client, message);
                 return;
@@ -143,7 +144,7 @@ namespace SecureWire
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Fehler beim Senden der Nachricht an Client: {ex.Message}");
+                throw new Exception($"Error while attempting to send a message to the client with the ÍD: {client.Id}", innerException: ex);
             }
         }
 
@@ -152,27 +153,27 @@ namespace SecureWire
             var client = _connectedClients.FirstOrDefault(c => c.TcpClient == tcpClient);
             if (client == null)
             {
-                throw new Exception("Client nicht gefunden.");
+                throw new Exception("Client not found.");
             }
             if (client.TcpClient == null)
             {
-                throw new Exception("Kein TcpClient vorhanden.");
+                throw new ClientNotConnectedException();
             }
             if (client.TcpClient.Client.RemoteEndPoint == null)
             {
-                throw new Exception("Kein RemoteEndPoint vorhanden.");
+                throw new Exception("No RemoteEndPoint available.");
             }
 
             switch (receivedPackage.FLAG)
             {
                 case Flags.PUBKEYFROMSERVER:
                     if (client.PublicKey == null)
-                        throw new Exception("Client hat keinen PublicKey.");
+                        throw new Exception("Client has no PublicKey.");
                     SendPackageToClient(client, client.PublicKey, Flags.PUBKEYFROMSERVER);
                     break;
                 case Flags.AESFORSERVER:
                     if (receivedPackage.Value == null)
-                        throw new Exception("Client hat keinen AESKey gesendet.");
+                        throw new Exception("Client has not sent an AES key.");
                     string encryptedAESKey = receivedPackage.Value;
                     string decryptedAESKey = RSA.DecryptWithPrivateKey(encryptedAESKey, client.PrivateKey);
                     client.AESKey = decryptedAESKey;
@@ -192,7 +193,7 @@ namespace SecureWire
                     client.TcpClient.Close();
                     break;
                 default:
-                    Console.WriteLine($"Ungültiger Flag-Wert: {receivedPackage.FLAG}");
+                    Console.WriteLine($"Invalid Flag: {receivedPackage.FLAG}");
                     break;
             }
         }
