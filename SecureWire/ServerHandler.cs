@@ -47,7 +47,7 @@ namespace SecureWire
 
                     NetworkStream stream = client.TcpClient.GetStream();
 
-                    Task receiveTask = ReceiveMessagesAsync(stream, messageReceivedCallback, client.TcpClient);
+                    Task receiveTask = ReceiveMessagesAsync(stream, messageReceivedCallback, client);
                 }
             }
             catch (Exception)
@@ -56,10 +56,12 @@ namespace SecureWire
             }
         }
 
-        private async Task ReceiveMessagesAsync(NetworkStream stream, Action<Package<string>, string> messageReceivedCallback, TcpClient tcpClient)
+        private async Task ReceiveMessagesAsync(NetworkStream stream, Action<Package<string>, string> messageReceivedCallback, Client client)
         {
             try
             {
+                if (client.TcpClient == null)
+                    throw new ClientNotConnectedException();
                 while (true)
                 {
                     byte[] buffer = new byte[4096];
@@ -72,7 +74,12 @@ namespace SecureWire
                     string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                     Package<string> receivedPackage = JsonConvert.DeserializeObject<Package<string>>(message);
 
-                    MessageHandler(messageReceivedCallback, receivedPackage, tcpClient);
+                    if (client.SecureConnection == true)
+                    {
+                        receivedPackage.Value = AES.Decrypt(client.AESKey, receivedPackage.Value);
+                    }
+
+                    MessageHandler(messageReceivedCallback, receivedPackage, client.TcpClient);
                 }
             }
             catch (Exception ex)

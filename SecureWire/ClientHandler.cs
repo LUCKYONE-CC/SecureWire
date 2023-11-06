@@ -88,6 +88,11 @@ public class ClientHandler : TcpClient
 
             NetworkStream stream = client.TcpClient.GetStream();
 
+            if (client.SecureConnection)
+            {
+                message = AES.Encrypt(client.AESKey, message);
+            }
+
             Package<string> package = new Package<string>
             {
                 FLAG = flag,
