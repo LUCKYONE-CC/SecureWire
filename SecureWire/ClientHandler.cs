@@ -34,6 +34,8 @@ public class ClientHandler : TcpClient
         {
             Task.Run(() =>
             {
+                if (client.TcpClient == null)
+                    throw new ClientNotConnectedException();
                 NetworkStream stream = client.TcpClient.GetStream();
 
                 while (true)
@@ -49,9 +51,12 @@ public class ClientHandler : TcpClient
 
                     Package<string>? receivedPackage = JsonConvert.DeserializeObject<Package<string>>(message);
 
-                    if(receivedPackage.FLAG == null)
+                    if(receivedPackage != null)
                     {
-                        throw new PackageFlagIsNullException();
+                        if (receivedPackage.FLAG == null)
+                        {
+                            throw new PackageException(message: "Package-Flag is null");
+                        }
                     }
 
                     if (client.SecureConnection == true)

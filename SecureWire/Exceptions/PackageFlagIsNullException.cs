@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 namespace SecureWire.Exceptions
 {
     [Serializable]
-    public class PackageFlagIsNullException : Exception
+    public class PackageException : Exception
     {
-        public PackageFlagIsNullException()
+        public PackageException()
         { }
 
-        public PackageFlagIsNullException(string message)
+        public PackageException(string message)
             : base(message)
         { }
 
-        public PackageFlagIsNullException(Exception innerException, string message = "The package-Flag was null")
+        public PackageException(Exception innerException, string message)
             : base(message, innerException)
         { }
     }
