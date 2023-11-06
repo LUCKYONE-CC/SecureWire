@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SecureWire;
 using SecureWire.Cryptography;
 using SecureWire.Exceptions;
 using SecureWire.Models;
@@ -75,37 +76,7 @@ public class ClientHandler : TcpClient
     }
     public void SendMessageToServer(string message)
     {
-        SendPackageToServer(message, Flags.MESSAGE);
-    }
-    private void SendPackageToServer(string message, Flags flag)
-    {
-        try
-        {
-            if (client.TcpClient == null || !client.TcpClient.Connected)
-            {
-                throw new ClientNotConnectedException();
-            }
-
-            NetworkStream stream = client.TcpClient.GetStream();
-
-            if (client.SecureConnection)
-            {
-                message = AES.Encrypt(client.AESKey, message);
-            }
-
-            Package<string> package = new Package<string>
-            {
-                FLAG = flag,
-                Value = message
-            };
-
-            byte[] data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(package));
-            stream.Write(data, 0, data.Length);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Fehler beim Senden der Nachricht an Server: {ex.Message}");
-        }
+        ServerClientShared.SendPackage(client, message, Flags.MESSAGE);
     }
     private void MessageHandler(Action<Package<string>, string> messageReceivedCallback, Package<string> receivedPackage)
     {
@@ -128,18 +99,18 @@ public class ClientHandler : TcpClient
                     throw new Exception("Kein Public-Key vom Server erhalten.");
                 string encryptedAESKey = RSA.EncryptWithPublicKey(client.AESKey, receivedPackage.Value);
                 client.PublicKey = receivedPackage.Value;
-                SendPackageToServer(encryptedAESKey, Flags.AESFORSERVER);
+                ServerClientShared.SendPackage(client, encryptedAESKey, Flags.AESFORSERVER);
                 break;
             case Flags.CONFIRMRECEPTION:
                 bool validationSuccessStatus = ValidateSuccessfulKeyExchange(receivedPackage.Value, client.PublicKey);
                 if(validationSuccessStatus == true)
                 {
                     client.SecureConnection = true;
-                    SendPackageToServer("SUCCESSFULKEYEXCHANGE", Flags.SUCCESSFULKEYEXCHANGE);
+                    ServerClientShared.SendPackage(client, "SUCCESSFULKEYEXCHANGE", Flags.SUCCESSFULKEYEXCHANGE);
                 }
                 else
                 {
-                    SendPackageToServer("CLOSECONNECTION", Flags.CLOSECONNECTION);
+                    ServerClientShared.SendPackage(client, "CLOSECONNECTION", Flags.CLOSECONNECTION);
                     client.TcpClient.Close();
                     throw new Exception("Fehler bei der Validierung des Schlüsselaustausches.");
                 }

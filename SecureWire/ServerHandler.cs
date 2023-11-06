@@ -122,37 +122,7 @@ namespace SecureWire
 
         public void SendMessageToClient(Client client, string message)
         {
-            SendPackageToClient(client, message, Flags.MESSAGE);
-        }
-        private void SendPackageToClient(Client client, string message, Flags flag)
-        {
-            try
-            {
-                if (client.TcpClient == null || !client.TcpClient.Connected)
-                {
-                    throw new Exception("Client nicht verbunden.");
-                }
-
-                NetworkStream stream = client.TcpClient.GetStream();
-
-                if (client.SecureConnection)
-                {
-                    message = AES.Encrypt(client.AESKey, message);
-                }
-
-                Package<string> package = new Package<string>
-                {
-                    FLAG = flag,
-                    Value = message
-                };
-
-                byte[] data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(package));
-                stream.Write(data, 0, data.Length);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error while attempting to send a message to the client with the ÍD: {client.Id}", innerException: ex);
-            }
+            ServerClientShared.SendPackage(client, message, Flags.MESSAGE);
         }
 
         private void MessageHandler(Action<Package<string>, string>? messageReceivedCallback, Package<string> receivedPackage, TcpClient tcpClient)
@@ -176,7 +146,7 @@ namespace SecureWire
                 case Flags.PUBKEYFROMSERVER:
                     if (client.PublicKey == null)
                         throw new Exception("Client has no PublicKey.");
-                    SendPackageToClient(client, client.PublicKey, Flags.PUBKEYFROMSERVER);
+                    ServerClientShared.SendPackage(client, client.PublicKey, Flags.PUBKEYFROMSERVER);
                     break;
                 case Flags.AESFORSERVER:
                     if (receivedPackage.Value == null)
@@ -184,7 +154,7 @@ namespace SecureWire
                     string encryptedAESKey = receivedPackage.Value;
                     string decryptedAESKey = RSA.DecryptWithPrivateKey(encryptedAESKey, client.PrivateKey);
                     client.AESKey = decryptedAESKey;
-                    SendPackageToClient(client, AES.Encrypt(client.AESKey, client.PrivateKey), Flags.CONFIRMRECEPTION);
+                    ServerClientShared.SendPackage(client, AES.Encrypt(client.AESKey, client.PrivateKey), Flags.CONFIRMRECEPTION);
                     break;
                 case Flags.CONFIRMRECEPTION:
                     break;
