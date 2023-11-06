@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using SecureWire.Cryptography;
+using SecureWire.Exceptions;
 using SecureWire.Models;
 using System.Net.Sockets;
 using System.Text;
@@ -17,7 +18,9 @@ public class ClientHandler : TcpClient
     {
         try
         {
-                client.TcpClient.Connect(hostname, port);
+            if (client.TcpClient == null)
+                throw new ClientNotConnectedException();
+            client.TcpClient.Connect(hostname, port);
         }
         catch (Exception ex)
         {
@@ -44,7 +47,12 @@ public class ClientHandler : TcpClient
 
                     string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
-                    Package<string> receivedPackage = JsonConvert.DeserializeObject<Package<string>>(message);
+                    Package<string>? receivedPackage = JsonConvert.DeserializeObject<Package<string>>(message);
+
+                    if(receivedPackage.FLAG == null)
+                    {
+                        throw new PackageFlagIsNullException();
+                    }
 
                     if (client.SecureConnection == true)
                     {
@@ -70,7 +78,7 @@ public class ClientHandler : TcpClient
         {
             if (client.TcpClient == null || !client.TcpClient.Connected)
             {
-                throw new Exception("Client nicht verbunden.");
+                throw new ClientNotConnectedException();
             }
 
             NetworkStream stream = client.TcpClient.GetStream();
@@ -91,14 +99,16 @@ public class ClientHandler : TcpClient
     }
     private void MessageHandler(Action<Package<string>, string> messageReceivedCallback, Package<string> receivedPackage)
     {
-        if(client.TcpClient.Client.RemoteEndPoint == null)
-        {
-            throw new Exception("Kein RemoteEndPoint vorhanden.");
-        }
+        if (client.TcpClient == null)
+            throw new ClientNotConnectedException();
 
-        switch(receivedPackage.FLAG)
+        switch (receivedPackage.FLAG)
         {
             case Flags.MESSAGE:
+                if (client.TcpClient.Client.RemoteEndPoint == null)
+                {
+                    throw new Exception("Kein RemoteEndPoint vorhanden.");
+                }
                 string sender = ((System.Net.IPEndPoint)client.TcpClient.Client.RemoteEndPoint).Address.ToString();
                 messageReceivedCallback?.Invoke(receivedPackage, sender);
                 break;
